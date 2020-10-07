@@ -2,13 +2,15 @@
 <html lang="en">
 
 <head>
-    <title>Mask Detection And Face Recognition</title>
+    <title>Mask Dection And Face Recognition</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
 </head>
 
 <body>
@@ -20,7 +22,7 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" href="#">Mask Detection</a>
+                <a class="navbar-brand" href="#">Portfolio</a>
             </div>
             <div class="collapse navbar-collapse" id="myNavbar">
                 <ul class="nav navbar-nav">
@@ -36,16 +38,15 @@
         </div>
     </nav>
 
-
-    <div class="jumbotron" style="background-image:url({{ url_for('static', filename='img/main.png')}})">
-        <div class="jumbotron-content container text-center">
+    <div class="jumbotron">
+        <div class="container text-center">
             <h1>Mask Dection And Face Recognition</h1>
             <p>Explore new technology when touching "Me"...</p>
         </div>
     </div>
 
     <div class="container-fluid bg-3 text-center">
-        <h3>Options To Choose</h3><br>
+        <h3>Some of my Work</h3><br>
         <div class="row">
             <div class="col-sm-6">
                 <h3>Realtime Stream</h3>
