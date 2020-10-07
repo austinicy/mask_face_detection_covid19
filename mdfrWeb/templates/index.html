@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
 </head>
 
@@ -37,7 +38,7 @@
     </nav>
 
 
-    <div class="jumbotron" style="background-image:url({{ url_for('static', filename='img/main.png')}})">
+    <div class="jumbotron" style="background-image:url({{ url_for('static', filename='img/main.png')}})" >
         <div class="jumbotron-content container text-center">
             <h1>Mask Dection And Face Recognition</h1>
             <p>Explore new technology when touching "Me"...</p>
@@ -49,11 +50,11 @@
         <div class="row">
             <div class="col-sm-6">
                 <h3>Realtime Stream</h3>
-                <img src="https://placehold.it/150x80?text=IMAGE" class="img-responsive" style="width:100%" alt="Image">
+                <img src="{{ url_for('static', filename='img/video.png')}}" class="img-responsive" style="width:100%" alt="Image">
             </div>
             <div class="col-sm-6">
                 <h3>Static Image/Video</h3>
-                <img src="https://placehold.it/150x80?text=IMAGE" class="img-responsive" style="width:100%" alt="Image">
+                <img src="{{ url_for('static', filename='img/image.png')}}" class="img-responsive" style="width:100%" alt="Image">
             </div>
         </div>
     </div><br>
@@ -62,10 +63,7 @@
             <!--<img src="{{ url_for('video_feed') }}"> -->
         </div>
 
-        <form method="post" enctype="multipart/form-data">
-            <input type="file" name="file">
-            <input type="submit" value="Upload">
-        </form>
+
 
 <footer class="container-fluid text-center">
     <p>Power by © 2020 NUS Practice Developer Group28 All Rights Reserved</p>
