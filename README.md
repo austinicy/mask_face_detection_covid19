@@ -60,7 +60,7 @@
 2. **Execution** 
 * run this command in the backend:  
        ```
-       $ python mdfrWeb/webstreaming.py --ip 127.0.0.1 --port 8000
+       $ python webApp/webstreaming.py --ip 127.0.0.1 --port 8000
        ```
 * open URL in your browser:
        ```
