@@ -1,9 +1,6 @@
 import cv2
-import os
 import numpy as np
 from tensorflow.keras.preprocessing.image import img_to_array
-from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
-import numpy as np
 from sklearn.preprocessing import Normalizer
 from scipy.spatial.distance import cosine
 in_encoder = Normalizer('l2')
@@ -46,7 +43,7 @@ class MaskDetector:
             return identity
         return "None"
 
-    def detect(self, frame, net, ln, LABELS, COLORS, W, H,model_Face,faceCascade,database):
+    def detect(self, frame, net, ln, LABELS, COLORS, W, H, model_Face, faceCascade, database):
         # construct a blob from the input frame and then perform a forward
         # pass of the YOLO object detector, giving us our bounding boxes
         # and associated probabilities
@@ -60,9 +57,9 @@ class MaskDetector:
         confidences = []
         classIDs = []
 
-        faces_list=[]
-        encodes=[]
-        names=[]
+        #faces_list = []
+        #encodes = []
+        names = []
 
         # loop over each of the layer outputs
         for output in layerOutputs:
@@ -123,13 +120,12 @@ class MaskDetector:
 
                         classIDs.append(classID)
                         names.append(label)
-                        print(len(names))
                         print(label)
 
-        #apply non-maximal suppression to suppress weak, overlapping bounding boxes
+        # apply non-maximal suppression to suppress weak, overlapping bounding boxes
         idxs = cv2.dnn.NMSBoxes(boxes, confidences, CONFIDENCE, THRESHOLD)
 
-        #ensure at least one detection exists
+        # ensure at least one detection exists
         if len(idxs) > 0:
             # loop over the indexes we are keeping
             for i in idxs.flatten():
