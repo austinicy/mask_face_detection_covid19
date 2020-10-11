@@ -51,8 +51,8 @@ def video_feed():
 if __name__ == '__main__':
     # construct the argument parser and parse command line arguments
     ap = argparse.ArgumentParser()
-    ap.add_argument("-i", "--ip", type=str, required=True, help="ip address")
-    ap.add_argument("-o", "--port", type=int, required=True,
+    ap.add_argument("-i", "--ip", type=str, default="127.0.0.1", help="ip address")
+    ap.add_argument("-o", "--port", type=int, default=8000,
         help="port number of the server")
     args = vars(ap.parse_args())
 
