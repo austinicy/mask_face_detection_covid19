@@ -25,7 +25,7 @@ np.random.seed(42)
 COLORS = np.random.randint(0, 255, size=(len(LABELS), 3), dtype="uint8")
 
 # derive the paths to the YOLO weights and model configuration
-weightsPath = os.path.sep.join([YOLO_PATH, "/weights/yolov4_custom_train_final.weights"])
+weightsPath = os.path.sep.join([YOLO_PATH, "/yolov4_custom_train_final.weights"])
 configPath = os.path.sep.join([YOLO_PATH, "/cfg/yolov4_custom_test.cfg"])
 
 # load our YOLO object detector and determine only the *output* layer names
