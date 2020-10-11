@@ -46,7 +46,7 @@ class MaskDetector:
             return identity
         return "None"
 
-    def detect(self, frame, net, ln, LABELS, COLORS, W, H,model_Face,faceCascade,database):
+    def detect(self, frame, net, ln, LABELS, COLORS, W, H, model_Face, faceCascade, database):
         # construct a blob from the input frame and then perform a forward
         # pass of the YOLO object detector, giving us our bounding boxes
         # and associated probabilities
@@ -126,10 +126,10 @@ class MaskDetector:
                         print(len(names))
                         print(label)
 
-        #apply non-maximal suppression to suppress weak, overlapping bounding boxes
+        # apply non-maximal suppression to suppress weak, overlapping bounding boxes
         idxs = cv2.dnn.NMSBoxes(boxes, confidences, CONFIDENCE, THRESHOLD)
 
-        #ensure at least one detection exists
+        # ensure at least one detection exists
         if len(idxs) > 0:
             # loop over the indexes we are keeping
             for i in idxs.flatten():
@@ -140,5 +140,5 @@ class MaskDetector:
                 # draw a bounding box rectangle and label on the frame
                 color = [int(c) for c in COLORS[classIDs[i]]]
                 cv2.rectangle(frame, (x, y), (x + w, y + h), color, 2)
-                text = "{}: {:.4f}".format(LABELS[classIDs[i]]+":"+names[i], confidences[i])
-                cv2.putText(frame, text, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, 10)
+                text = "{}: {:.4f}".format(LABELS[classIDs[i]], confidences[i])
+                cv2.putText(frame, text, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
