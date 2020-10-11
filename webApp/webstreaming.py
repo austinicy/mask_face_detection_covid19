@@ -57,4 +57,4 @@ if __name__ == '__main__':
     args = vars(ap.parse_args())
 
     # start the flask app
-    app.run(host=args["ip"], port=args["port"], debug=True, threaded=True, use_reloader=False)
+    app.run(host=args["ip"], port=args["port"], debug=True, threaded=True, use_reloader=False) 
