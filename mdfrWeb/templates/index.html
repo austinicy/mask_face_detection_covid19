@@ -1,77 +1,28 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends 'base.html' %}
 
-<head>
-    <title>Mask Detection And Face Recognition</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+{% block content %}
+<div class="jumbotron" style="background-image:url({{ url_for('static', filename='img/main.png')}})" >
+    <div class="jumbotron-content container text-center">
+        <h1>Mask Dection And Face Recognition</h1>
+        <p>Explore new technology when touching "Me"...</p>
+    </div>
+</div>
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
-</head>
-
-<body>
-    <nav class="navbar navbar-inverse">
-        <div class="container-fluid">
-            <div class="navbar-header">
-                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
-                <a class="navbar-brand" href="#">Mask Detection</a>
-            </div>
-            <div class="collapse navbar-collapse" id="myNavbar">
-                <ul class="nav navbar-nav">
-                    <li class="active"><a href="#">Home</a></li>
-                    <li><a href="#">About</a></li>
-                    <li><a href="#">Gallery</a></li>
-                    <li><a href="#">Contact</a></li>
-                </ul>
-                <ul class="nav navbar-nav navbar-right">
-                    <li><a href="#"><span class="glyphicon glyphicon-log-in"></span> Login</a></li>
-                </ul>
-            </div>
+<div class="container-fluid bg-3 text-center">
+    <h3>Options To Choose</h3><br>
+    <div class="row">
+        <div class="col-sm-3 col-sm-offset-2">
+            <h3>Realtime Stream</h3>
+            <a href="/realStream">
+                <img src="{{ url_for('static', filename='img/video.png')}}" class="img-responsive" style="width:100%" alt="Image">
+            </a>
         </div>
-    </nav>
-
-
-    <div class="jumbotron" style="background-image:url({{ url_for('static', filename='img/main.png')}})" >
-        <div class="jumbotron-content container text-center">
-            <h1>Mask Dection And Face Recognition</h1>
-            <p>Explore new technology when touching "Me"...</p>
+        <div class="col-sm-3 col-sm-offset-2">
+            <h3>Static Image/Video</h3>
+            <a href="/staticStream">
+                <img src="{{ url_for('static', filename='img/image.png')}}" class="img-responsive" style="width:100%" alt="Image">
+            </a>
         </div>
     </div>
-
-    <div class="container-fluid bg-3 text-center">
-        <h3>Options To Choose</h3><br>
-        <div class="row">
-            <div class="col-sm-6">
-                <h3>Realtime Stream</h3>
-                <a href="/realStream">
-                    <img src="{{ url_for('static', filename='img/video.png')}}" class="img-responsive" style="width:100%" alt="Image">
-                </a>
-            </div>
-            <div class="col-sm-6">
-                <h3>Static Image/Video</h3>
-                <a href="/staticStream">
-                    <img src="{{ url_for('static', filename='img/image.png')}}" class="img-responsive" style="width:100%" alt="Image">
-                </a>
-            </div>
-        </div>
-    </div><br>
-
-        <div id="faceShow">
-            <!--<img src="{{ url_for('video_feed') }}"> -->
-        </div>
-
-
-
-<footer class="container-fluid text-center">
-    <p>Power by © 2020 NUS Practice Developer Group28 All Rights Reserved</p>
-</footer>
-
-</body>
-</html>
+</div>
+{% endblock %}

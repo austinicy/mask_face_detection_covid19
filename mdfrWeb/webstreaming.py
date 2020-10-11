@@ -29,6 +29,16 @@ def staticStream():
     # forward to static stream page
     return render_template("staticStream.html")
 
+@app.route("/about/")
+def about():
+    # forward to about page
+    return render_template("about.html")
+
+@app.route("/contact/")
+def contact():
+    # forward to contact page
+    return render_template("contact.html")
+
 @app.route("/video_feed")
 def video_feed():
     # return the response generated along with the specific media
