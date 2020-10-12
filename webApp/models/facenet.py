@@ -1,23 +1,62 @@
+import os
 import cv2
+import csv
 import numpy as np
-from tensorflow.keras.preprocessing.image import img_to_array
+
 from sklearn.preprocessing import Normalizer
 from scipy.spatial.distance import cosine
+
+import tensorflow as tf
+from tensorflow.keras.models import load_model
+from tensorflow.keras.preprocessing.image import img_to_array
+
 in_encoder = Normalizer('l2')
 
-# initial values
-CONFIDENCE=0.5
-THRESHOLD=0.3
+class FaceNet:
+    def __init__(self):
+        self.CONFIDENCE = 0.5
+        self.THRESHOLD = 0.3
+        self.DATA_PATH = "data"
+        self.init_database()
+        self.load_model()
 
-# set parameter
-probability_minimum = 0.5
-threshold = 0.3
-min_dist = 1
+    def init_database(self):
+        self. database = {}
 
-class MaskDetector:
+        dbPath = os.path.sep.join([self.DATA_PATH, "dict.csv"])
+        reader = csv.reader(open(dbPath), delimiter='\n')
+
+        for row in reader:
+            data = row[0].split(",", 1)
+            encode = data[1].replace('"','')
+            encode = encode.replace('[','')
+            encode = encode.replace(']','')
+            encode = np.fromstring(encode, dtype=float, sep=',')
+            self.database[data[0]] = encode
+
+    def load_model(self):
+        facePath = os.path.sep.join([self.DATA_PATH, "facenet_keras.h5"])
+        cvPath = os.path.sep.join([self.DATA_PATH, "haarcascade_frontalface_alt2.xml"])
+
+        self.faceCascade = cv2.CascadeClassifier(cvPath)
+        self.model_Face = load_model(facePath, custom_objects={ 'loss': self.triplet_loss })
+
+    def triplet_loss(y_true, y_pred, alpha = 0.2):
+        anchor, positive, negative = y_pred[0], y_pred[1], y_pred[2]
+
+        # Step 1: Compute the (encoding) distance between the anchor and the positive
+        pos_dist = tf.reduce_sum(tf.square(tf.subtract(anchor, positive)), axis=-1)
+        # Step 2: Compute the (encoding) distance between the anchor and the negative
+        neg_dist = tf.reduce_sum(tf.square(tf.subtract(anchor, negative)), axis=-1)
+        # Step 3: subtract the two previous distances and add alpha.
+        basic_loss = tf.add(tf.subtract(pos_dist, neg_dist), alpha)
+        # Step 4: Take the maximum of basic_loss and 0.0. Sum over the training examples.
+        loss = tf.reduce_sum(tf.maximum(basic_loss, 0.0))
+
+        return loss
 
     #get face embedding and perform face recognition
-    def get_embedding(image,model_Face):
+    def get_embedding(self, image):
         # scale pixel values
         face = image.astype('float32')
         # standardization
@@ -25,14 +64,14 @@ class MaskDetector:
         face = (face - mean) / std
         face = cv2.resize(face,(160,160))
         face = np.expand_dims(face, axis=0)
-        encode = model_Face.predict(face)[0]
+        encode = self.model_Face.predict(face)[0]
         return encode
 
-    def find_person(encoding,database):
+    def find_person(self, encoding, min_dist=1):
         min_dist = float("inf")
         encoding = in_encoder.transform(np.expand_dims(encoding, axis=0))[0]
-        for (name, db_enc) in database.items():
-            dist = cosine(db_enc,encoding)
+        for (name, db_enc) in self.database.items():
+            dist = cosine(db_enc, encoding)
             if dist < 0.5 and dist < min_dist:
                 min_dist = dist
                 identity = name
@@ -43,7 +82,7 @@ class MaskDetector:
             return identity
         return "None"
 
-    def detect(self, frame, net, ln, LABELS, COLORS, W, H, model_Face, faceCascade, database):
+    def detect(self, frame, net, ln, LABELS, COLORS, W, H):
         # construct a blob from the input frame and then perform a forward
         # pass of the YOLO object detector, giving us our bounding boxes
         # and associated probabilities
@@ -72,7 +111,7 @@ class MaskDetector:
 
                 # filter out weak predictions by ensuring the detected
                 # probability is greater than the minimum probability
-                if confidence > CONFIDENCE:
+                if confidence > self.CONFIDENCE:
                     # scale the bounding box coordinates back relative to
                     # the size of the image
                     box = detection[0:4] * np.array([W, H, W, H])
@@ -110,9 +149,9 @@ class MaskDetector:
                         face_frame = img_to_array(crop)
                         name = "None"
                         if face_frame.size!=0 :
-                            face_frame = cv2.resize(face_frame,(160, 160))
-                            encode = MaskDetector.get_embedding(face_frame,model_Face)
-                            name = MaskDetector.find_person(encode,database)
+                            face_frame = cv2.resize(face_frame, (160, 160))
+                            encode = FaceNet.get_embedding(face_frame, self.model_Face)
+                            name = FaceNet.find_person(encode, self.database)
                         if name == "None":
                             label = "Not found"
                         else :
@@ -120,10 +159,9 @@ class MaskDetector:
 
                         classIDs.append(classID)
                         names.append(label)
-                        print(label)
 
         # apply non-maximal suppression to suppress weak, overlapping bounding boxes
-        idxs = cv2.dnn.NMSBoxes(boxes, confidences, CONFIDENCE, THRESHOLD)
+        idxs = cv2.dnn.NMSBoxes(boxes, confidences, self.CONFIDENCE, self.THRESHOLD)
 
         # ensure at least one detection exists
         if len(idxs) > 0:

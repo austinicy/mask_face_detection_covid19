@@ -1,9 +1,6 @@
 import cv2
-import os
 import numpy as np
 from tensorflow.keras.preprocessing.image import img_to_array
-from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
-import numpy as np
 from sklearn.preprocessing import Normalizer
 from scipy.spatial.distance import cosine
 in_encoder = Normalizer('l2')
@@ -20,7 +17,7 @@ min_dist = 1
 class MaskDetector:
 
     #get face embedding and perform face recognition
-    def get_embedding(image,model_Face):
+    def get_embedding(image, model_Face):
         # scale pixel values
         face = image.astype('float32')
         # standardization
@@ -31,7 +28,7 @@ class MaskDetector:
         encode = model_Face.predict(face)[0]
         return encode
 
-    def find_person(encoding,database):
+    def find_person(encoding, database):
         min_dist = float("inf")
         encoding = in_encoder.transform(np.expand_dims(encoding, axis=0))[0]
         for (name, db_enc) in database.items():
@@ -60,9 +57,9 @@ class MaskDetector:
         confidences = []
         classIDs = []
 
-        faces_list=[]
-        encodes=[]
-        names=[]
+        #faces_list = []
+        #encodes = []
+        names = []
 
         # loop over each of the layer outputs
         for output in layerOutputs:
@@ -114,7 +111,7 @@ class MaskDetector:
                         name = "None"
                         if face_frame.size!=0 :
                             face_frame = cv2.resize(face_frame,(160, 160))
-                            encode = MaskDetector.get_embedding(face_frame,model_Face)
+                            encode = MaskDetector.get_embedding(face_frame, model_Face)
                             name = MaskDetector.find_person(encode,database)
                         if name == "None":
                             label = "Not found"
@@ -123,8 +120,6 @@ class MaskDetector:
 
                         classIDs.append(classID)
                         names.append(label)
-                        print(len(names))
-                        print(label)
 
         # apply non-maximal suppression to suppress weak, overlapping bounding boxes
         idxs = cv2.dnn.NMSBoxes(boxes, confidences, CONFIDENCE, THRESHOLD)
@@ -140,5 +135,5 @@ class MaskDetector:
                 # draw a bounding box rectangle and label on the frame
                 color = [int(c) for c in COLORS[classIDs[i]]]
                 cv2.rectangle(frame, (x, y), (x + w, y + h), color, 2)
-                text = "{}: {:.4f}".format(LABELS[classIDs[i]], confidences[i])
-                cv2.putText(frame, text, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+                text = "{}: {:.4f}".format(LABELS[classIDs[i]]+":"+names[i], confidences[i])
+                cv2.putText(frame, text, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, 10)
