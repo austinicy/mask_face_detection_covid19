@@ -3,7 +3,7 @@ import threading
 import argparse
 
 from flask import Flask, Response
-from flask import flash, request, redirect
+from flask import flash, request, redirect, jsonify
 from flask import render_template
 
 from werkzeug.utils import secure_filename
@@ -13,6 +13,8 @@ from models.facenet import FaceNet
 
 UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
+
+TEMPLATES_AUTO_RELOAD = True
 
 # initialize a flask object
 app = Flask(__name__)
@@ -55,14 +57,24 @@ def video_feed():
     return Response(RealStream.generate(),
         mimetype = "multipart/x-mixed-replace; boundary=frame")
 
+@app.route("/content_dash", methods=['GET'])
+def content_dash():
+    data = request.values
+    if data['type'] == 'imagecode':
+        return render_template('imagecode.html')
+    if data['type'] == 'imageprocess':
+        return render_template('imageprocess.html')
+    if data['type'] == 'folderscan':
+        return render_template('folderscan.html')
+
 @app.route('/upload', methods=['GET', 'POST'])
 def upload_file():
     if request.method == 'POST':
         # check if the post request has the file part
-        if 'file' not in request.files:
+        if 'uploadFile' not in request.files:
             flash('No file part')
             return redirect(request.url)
-        file = request.files['file']
+        file = request.files['uploadFile']
         # if user does not select file, browser also
         # submit an empty part without filename
         if file.filename == '':
@@ -76,7 +88,7 @@ def upload_file():
             md = FaceNet()
             username = request.form['username']
             md.save_encode_db(username, filename)
-        return render_template('staticStream.html')
+        return jsonify('success')
 
 
 def allowed_file(filename):

@@ -206,7 +206,7 @@ class FaceNet:
 
     # encode person and save into db
     def save_encode_db(self, label, filename):
-        print("encoding was begining for: " + filename)
+        print("encoding was begining for: " + label)
 
         # extract face
         imagePath = os.path.sep.join(["uploads", filename])
