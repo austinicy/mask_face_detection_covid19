@@ -3,6 +3,9 @@ import cv2
 import csv
 import numpy as np
 
+from PIL import Image
+from mtcnn.mtcnn import MTCNN
+
 from sklearn.preprocessing import Normalizer
 from scipy.spatial.distance import cosine
 
@@ -16,14 +19,13 @@ class FaceNet:
     def __init__(self):
         self.CONFIDENCE = 0.5
         self.THRESHOLD = 0.3
-        self.DATA_PATH = "data"
         self.init_database()
-        self.load_model()
+        self.init_model()
 
     def init_database(self):
-        self. database = {}
+        self.database = {}
 
-        dbPath = os.path.sep.join([self.DATA_PATH, "dict.csv"])
+        dbPath = os.path.sep.join(["data", "dict.csv"])
         reader = csv.reader(open(dbPath), delimiter='\n')
 
         for row in reader:
@@ -34,11 +36,10 @@ class FaceNet:
             encode = np.fromstring(encode, dtype=float, sep=',')
             self.database[data[0]] = encode
 
-    def load_model(self):
-        facePath = os.path.sep.join([self.DATA_PATH, "facenet_keras.h5"])
-        cvPath = os.path.sep.join([self.DATA_PATH, "haarcascade_frontalface_alt2.xml"])
-
-        self.faceCascade = cv2.CascadeClassifier(cvPath)
+    def init_model(self):
+        facePath = os.path.sep.join(["data", "facenet_keras.h5"])
+       # cvPath = os.path.sep.join(["data", "haarcascade_frontalface_alt2.xml"])
+        #faceCascade = cv2.CascadeClassifier(cvPath)
         self.model_Face = load_model(facePath, custom_objects={ 'loss': self.triplet_loss })
 
     def triplet_loss(y_true, y_pred, alpha = 0.2):
@@ -55,7 +56,7 @@ class FaceNet:
 
         return loss
 
-    #get face embedding and perform face recognition
+    # get face embedding and perform face recognition
     def get_embedding(self, image):
         # scale pixel values
         face = image.astype('float32')
@@ -150,8 +151,8 @@ class FaceNet:
                         name = "None"
                         if face_frame.size!=0 :
                             face_frame = cv2.resize(face_frame, (160, 160))
-                            encode = FaceNet.get_embedding(face_frame, self.model_Face)
-                            name = FaceNet.find_person(encode, self.database)
+                            encode = self.get_embedding(face_frame)
+                            name = self.find_person(encode, self.database)
                         if name == "None":
                             label = "Not found"
                         else :
@@ -176,3 +177,50 @@ class FaceNet:
                 cv2.rectangle(frame, (x, y), (x + w, y + h), color, 2)
                 text = "{}: {:.4f}".format(LABELS[classIDs[i]]+":"+names[i], confidences[i])
                 cv2.putText(frame, text, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, 10)
+
+    # use MTCNN to detect faces and return face array
+    def extract_mtcnn_face(self, filename, required_size=(160, 160)):
+        print("extracting face from image")
+        detector = MTCNN()
+
+        image = Image.open(filename)
+        # convert to RGB, if needed
+        image = image.convert('RGB')
+        # convert to array
+        pixels = np.asarray(image)
+        # detect faces in the image
+        results = detector.detect_faces(pixels)
+        # extract the bounding box from the first face
+        x1, y1, width, height = results[0]['box']
+        # deal with negative pixel index
+        x1, y1 = abs(x1), abs(y1)
+        x2, y2 = x1 + width, y1 + height
+        # extract the face
+        face = pixels[y1:y2, x1:x2]
+        # resize pixels to the model size
+        image = Image.fromarray(face)
+        image = image.resize(required_size)
+        face_array = np.asarray(image)
+
+        return face_array
+
+    # encode person and save into db
+    def save_encode_db(self, label, filename):
+        print("encoding was begining for: " + filename)
+
+        # extract face
+        imagePath = os.path.sep.join(["uploads", filename])
+        face_frame = self.extract_mtcnn_face(imagePath)
+
+        # get enbedding code
+        self.database[label] = self.get_embedding(face_frame)
+
+        # write into db
+        dbPath = os.path.sep.join(["data", "dict.csv"])
+        with open(dbPath, 'w', newline='') as csv_file:
+            writer = csv.writer(csv_file)
+            for key, value in self.database.items():
+               value = list(value)
+               writer.writerow([key, value])
+
+

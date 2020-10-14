@@ -37,6 +37,12 @@ outputFrame = None
 lock = threading.Lock()
 
 class RealStream:
+    def __init__(self):
+        None
+
+    def init_config(self):
+        None
+
     def mask_detection():
         # global references to the video stream, output frame, and lock variables
         global vs, outputFrame, lock
