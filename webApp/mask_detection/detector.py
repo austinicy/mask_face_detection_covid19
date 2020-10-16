@@ -60,7 +60,7 @@ class MaskDetector:
             return identity
         return "None"
 
-    def detect(self, frame, net, ln, LABELS, COLORS, W, H, model_Face, faceCascade, database):
+    def detect(self, frame, output_frame, net, ln, LABELS, COLORS, W, H, model_Face, faceCascade, database):
         # construct a blob from the input frame and then perform a forward
         # pass of the YOLO object detector, giving us our bounding boxes
         # and associated probabilities
@@ -156,6 +156,6 @@ class MaskDetector:
 
                 # draw a bounding box rectangle and label on the frame
                 color = [int(c) for c in COLORS[classIDs[i]]]
-                cv2.rectangle(frame, (x, y), (x + w, y + h), color, 2)
+                cv2.rectangle(output_frame, (x, y), (x + w, y + h), color, 2)
                 text = "{}: {:.4f}".format(LABELS[classIDs[i]]+":"+names[i], confidences[i])
-                cv2.putText(frame, text, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, 10)
+                cv2.putText(output_frame, text, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, 10)

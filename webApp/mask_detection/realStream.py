@@ -7,7 +7,8 @@ import datetime
 import imutils
 import numpy as np
 import tensorflow as tf;
-from imutils.video import VideoStream
+from imutils.video import FPS
+from mask_detection.webcamVideoStream import WebcamVideoStream
 from tensorflow.keras.models import load_model
 from mask_detection.detector import MaskDetector
 
@@ -39,8 +40,7 @@ ln = [ln[i[0] - 1] for i in net.getUnconnectedOutLayers()]
 vs = None
 outputFrame = None
 lock = threading.Lock()
-vid_frame_rate = 60
-vid_resolution = (500, 500)
+
 
 #Facenet
 #load facenet pre-train database
@@ -73,13 +73,12 @@ model_Face = load_model(facePath, custom_objects={ 'loss': MaskDetector.triplet_
 class RealStream:
     # read frame from video
     def mask_detection():
-       
         # global references to the video stream, output frame, and lock variables
         global vs, outputFrame, lock
 
         # initialize the video stream and allow the camera sensor to warmup
-        # no use
-        vs = VideoStream(src=0, framerate=vid_frame_rate, resolution = vid_resolution).start()
+        vs = WebcamVideoStream(src=0).start()
+        fps = FPS().start()
         time.sleep(2.0)
 
         # initialize the detection and the total number of frames read thus far
@@ -87,7 +86,8 @@ class RealStream:
         md = MaskDetector()
 
         # loop over frames from the video stream
-        while True:
+        th = threading.currentThread()
+        while getattr(th, "running", True):
             # read the next frame from the video stream
             frame = vs.read()
 
@@ -95,29 +95,43 @@ class RealStream:
                 (H, W) = frame.shape[:2]
 
             # grab the current timestamp and draw it on the frame
-            # timestamp = datetime.datetime.now()
-            # cv2.putText(frame, timestamp.strftime(
-            #     "%A %d %B %Y %I:%M:%S%p"), (10, frame.shape[0] - 10),
-            #     cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 255), 1)
+            timestamp = datetime.datetime.now()
+            cv2.putText(frame, timestamp.strftime(
+                "%A %d %B %Y %I:%M:%S%p"), (10, frame.shape[0] - 10),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 255), 1)
 
 
-            # call function to detect the mask of frames read thus far
-            #md.detect(frame, net, ln, LABELS, COLORS, W, H)
-            md.detect(frame, net, ln, LABELS, COLORS, W, H, model_Face, faceCascade, database)
-            # resize the frame
-            frame = imutils.resize(frame, width=400)
-            # grey scale
-            # frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            # GaussianBlur
-            # frame = cv2.GaussianBlur(frame, (21, 21), 0)
+            
+            input_frame = frame
+            output_frame = frame
+            greyed = cv2.cvtColor(input_frame, cv2.COLOR_BGR2GRAY)
+            greyed = np.dstack([greyed, greyed, greyed])
+
+            # GaussianBlur  -- not helpful
+            # greyed = cv2.GaussianBlur(greyed, (21, 21), 0)
+
+            #  sharpen
+            # http://datahacker.rs/004-how-to-smooth-and-sharpen-an-image-in-opencv/
+            filter = np.array([[-1, -1, -1], [-1, 9, -1], [-1, -1, -1]])
+            sharpened = cv2.filter2D(greyed,-1,filter)
+
+            md.detect(sharpened,output_frame, net, ln, LABELS, COLORS, W, H, model_Face, faceCascade, database)
+
+            # resize the frame, for output
+            output_frame = imutils.resize(output_frame, width=400)
 
 
+            # cv2.putText(frame, "HELLO",(10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+            # cv2.imshow("Frame", frame)
+            # key = cv2.waitKey(1) & 0xFF
             # acquire the lock, set the output frame, and release the lock
             with lock:
-                outputFrame = frame.copy()
+                outputFrame = output_frame.copy()
 
             if frame is None:
                 break
+        print("thread is stopped, stopping camera")
+        vs.stop()
 
     # plot the frame onto video
     def generate():

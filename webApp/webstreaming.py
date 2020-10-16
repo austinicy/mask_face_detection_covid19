@@ -1,6 +1,6 @@
 import threading
 import argparse
-
+import time
 from flask import Response
 from flask import Flask
 from flask import render_template
@@ -16,26 +16,52 @@ def index():
 
 @app.route("/realStream/")
 def realStream():
-    # start a thread that will perform mask detection
+    # start a thread that will start a video stream
+    global t
     t = threading.Thread(target=RealStream.mask_detection)
     t.daemon = True
     t.start()
+
     # forward to real stream page
     return render_template("realStream.html")
 
 
 @app.route("/staticStream/")
 def staticStream():
+
+    # stop the detection thread
+    global t
+    try:
+        t.running = False
+        t.join()
+    except Exception:
+        print("realtime thread is not running")
+
     # forward to static stream page
     return render_template("staticStream.html")
 
 @app.route("/about/")
 def about():
+    # stop the detection thread
+    global t
+    try:
+        t.running = False
+        t.join()
+    except Exception:
+        print("realtime thread is not running")
+
     # forward to about page
     return render_template("about.html")
 
 @app.route("/contact/")
 def contact():
+    # stop the detection thread
+    global t
+    try:
+        t.running = False
+        t.join()
+    except Exception:
+        print("realtime thread is not running")
     # forward to contact page
     return render_template("contact.html")
 
