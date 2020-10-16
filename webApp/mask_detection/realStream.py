@@ -7,10 +7,9 @@ import datetime
 import imutils
 import numpy as np
 import tensorflow as tf;
-
 from imutils.video import VideoStream
 from tensorflow.keras.models import load_model
-from mask_detection.models import MaskDetector
+from mask_detection.detector import MaskDetector
 
 # setup the path for YOLOv4
 YOLO_PATH="yolov4"
@@ -25,7 +24,7 @@ np.random.seed(42)
 COLORS = np.random.randint(0, 255, size=(len(LABELS), 3), dtype="uint8")
 
 # derive the paths to the YOLO weights and model configuration
-weightsPath = os.path.sep.join([YOLO_PATH, "/yolov4_custom_train_final.weights"])
+weightsPath = os.path.sep.join([YOLO_PATH, "/yolov4_custom_train_best.weights"])
 configPath = os.path.sep.join([YOLO_PATH, "/cfg/yolov4_custom_test.cfg"])
 
 # load our YOLO object detector and determine only the *output* layer names
@@ -40,6 +39,8 @@ ln = [ln[i[0] - 1] for i in net.getUnconnectedOutLayers()]
 vs = None
 outputFrame = None
 lock = threading.Lock()
+vid_frame_rate = 60
+vid_resolution = (500, 500)
 
 #Facenet
 #load facenet pre-train database
@@ -61,33 +62,24 @@ facePath = os.path.sep.join([FACENET_PATH, "facenet_keras.h5"])
 cvPath = os.path.sep.join([FACENET_PATH, "haarcascade_frontalface_alt2.xml"])
 faceCascade = cv2.CascadeClassifier(cvPath)
 
+# start = time.time()
+model_Face = load_model(facePath, custom_objects={ 'loss': MaskDetector.triplet_loss })
+# end = time.time()
+# print("loading model complete, time: ".format(end-start))
+
+
+
 
 class RealStream:
-    #Load model
-    def triplet_loss(y_true, y_pred, alpha = 0.2):
-
-        anchor, positive, negative = y_pred[0], y_pred[1], y_pred[2]
-
-        # Step 1: Compute the (encoding) distance between the anchor and the positive
-        pos_dist = tf.reduce_sum(tf.square(tf.subtract(anchor, positive)), axis=-1)
-        # Step 2: Compute the (encoding) distance between the anchor and the negative
-        neg_dist = tf.reduce_sum(tf.square(tf.subtract(anchor, negative)), axis=-1)
-        # Step 3: subtract the two previous distances and add alpha.
-        basic_loss = tf.add(tf.subtract(pos_dist, neg_dist), alpha)
-        # Step 4: Take the maximum of basic_loss and 0.0. Sum over the training examples.
-        loss = tf.reduce_sum(tf.maximum(basic_loss, 0.0))
-
-        return loss
-
+    # read frame from video
     def mask_detection():
-        model_Face = load_model(facePath, custom_objects={ 'loss': RealStream.triplet_loss })
-
+       
         # global references to the video stream, output frame, and lock variables
         global vs, outputFrame, lock
 
         # initialize the video stream and allow the camera sensor to warmup
-        #vs = VideoStream(usePiCamera=1).start()
-        vs = VideoStream(src=0).start()
+        # no use
+        vs = VideoStream(src=0, framerate=vid_frame_rate, resolution = vid_resolution).start()
         time.sleep(2.0)
 
         # initialize the detection and the total number of frames read thus far
@@ -103,22 +95,31 @@ class RealStream:
                 (H, W) = frame.shape[:2]
 
             # grab the current timestamp and draw it on the frame
-            timestamp = datetime.datetime.now()
-            cv2.putText(frame, timestamp.strftime(
-                "%A %d %B %Y %I:%M:%S%p"), (10, frame.shape[0] - 10),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 255), 1)
+            # timestamp = datetime.datetime.now()
+            # cv2.putText(frame, timestamp.strftime(
+            #     "%A %d %B %Y %I:%M:%S%p"), (10, frame.shape[0] - 10),
+            #     cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 255), 1)
+
 
             # call function to detect the mask of frames read thus far
             #md.detect(frame, net, ln, LABELS, COLORS, W, H)
             md.detect(frame, net, ln, LABELS, COLORS, W, H, model_Face, faceCascade, database)
-
             # resize the frame
             frame = imutils.resize(frame, width=400)
+            # grey scale
+            # frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            # GaussianBlur
+            # frame = cv2.GaussianBlur(frame, (21, 21), 0)
+
 
             # acquire the lock, set the output frame, and release the lock
             with lock:
                 outputFrame = frame.copy()
 
+            if frame is None:
+                break
+
+    # plot the frame onto video
     def generate():
         # grab global references to the output frame and lock variables
         global outputFrame, lock

@@ -3,8 +3,11 @@ import numpy as np
 from tensorflow.keras.preprocessing.image import img_to_array
 from sklearn.preprocessing import Normalizer
 from scipy.spatial.distance import cosine
-in_encoder = Normalizer('l2')
 
+from threading import Timer
+in_encoder = Normalizer('l2')
+import tensorflow as tf
+print("Using gpu: {0}".format(tf.test.is_gpu_available(cuda_only=False,min_cuda_compute_capability=None)))
 # initial values
 CONFIDENCE=0.5
 THRESHOLD=0.3
@@ -15,6 +18,20 @@ threshold = 0.3
 min_dist = 1
 
 class MaskDetector:
+
+    def triplet_loss(y_true, y_pred, alpha = 0.2):
+        anchor, positive, negative = y_pred[0], y_pred[1], y_pred[2]
+
+        # Step 1: Compute the (encoding) distance between the anchor and the positive
+        pos_dist = tf.reduce_sum(tf.square(tf.subtract(anchor, positive)), axis=-1)
+        # Step 2: Compute the (encoding) distance between the anchor and the negative
+        neg_dist = tf.reduce_sum(tf.square(tf.subtract(anchor, negative)), axis=-1)
+        # Step 3: subtract the two previous distances and add alpha.
+        basic_loss = tf.add(tf.subtract(pos_dist, neg_dist), alpha)
+        # Step 4: Take the maximum of basic_loss and 0.0. Sum over the training examples.
+        loss = tf.reduce_sum(tf.maximum(basic_loss, 0.0))
+
+        return loss
 
     #get face embedding and perform face recognition
     def get_embedding(image,model_Face):
@@ -60,7 +77,11 @@ class MaskDetector:
         #faces_list = []
         #encodes = []
         names = []
-
+                
+        # def hello():
+        #     print("Hello")
+        # t = Timer(5.0, hello) 
+        # t.start()
         # loop over each of the layer outputs
         for output in layerOutputs:
             # loop over each of the detections
