@@ -47,11 +47,7 @@
             });
 
             $('#uploadFile').on('fileuploaded', function(event, data, previewId, index) {
-                var fname = data.files[index].name;
-                out = '<li>' + 'Uploading File # ' + (index + 1) + ' - ' +
-                fname + ' Success' + '</li>';
-                $('#kv-success-1 ul').append(out);
-                $('#kv-success-1').fadeIn('slow');
+                $("#username").val('');
             });
 
             //pending
@@ -63,15 +59,4 @@
 
 })();
 
-
-function getContent(type) {
-    $.ajax({
-        type: 'GET',
-        url: '/content_dash',
-        data: { 'type': type },
-        dataType: 'html',
-        success: function (data) {
-            $("#main").html(data);
-        }
-    });
 }

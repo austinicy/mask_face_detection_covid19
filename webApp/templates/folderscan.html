@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+
+<div class="d-flex" id="wrapper">
+    <!-- Sidebar -->
+    <div class="bg-light border-right">
+        <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+
+            <li class="nav-item active">
+                <a class="nav-link" href="/staticstream">
+                    <span>Image Encoding</span></a>
+            </li>
+
+            <hr class="sidebar-divider my-0">
+
+            <li class="nav-item">
+                <a class="nav-link" href="/imageprocess">
+                    <span>Image Process</span></a>
+            </li>
+
+            <hr class="sidebar-divider my-0">
+
+            <li class="nav-item">
+                <a class="nav-link" href="/folderscan">
+                    <span>Folder Scan</span></a>
+            </li>
+        </ul>
+    </div>
+    <!-- /#sidebar-wrapper -->
+
+    <!-- Page Content -->
+    <div class="container-fluid">
+        <div id="page-content-wrapper">
+            <div id="content">
+
+                <div class="container-fluid" id="main">
+
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+    <!-- /#page-content-wrapper -->
+</div>
+
+{% endblock %}

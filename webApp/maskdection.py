@@ -10,6 +10,7 @@ from werkzeug.utils import secure_filename
 
 from models.realStream import RealStream
 from models.facenet import FaceNet
+import util
 
 UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
@@ -25,7 +26,7 @@ def index():
     # return the rendered template
     return render_template("index.html")
 
-@app.route("/realStream/")
+@app.route("/realstream/")
 def realStream():
     # start a thread that will perform mask detection
     t = threading.Thread(target=RealStream.mask_detection)
@@ -35,10 +36,31 @@ def realStream():
     return render_template("realStream.html")
 
 
-@app.route("/staticStream/")
-def staticStream():
+@app.route("/staticstream/")
+def staticstream():
     # forward to static stream page
     return render_template("staticStream.html")
+
+@app.route("/imageprocess/")
+def imageprocess():
+    if request.method == 'POST':
+        # save file
+        file = request.files['uploadFile']
+        util.save_file(file)
+
+        # call function to process it
+        rs = realStream()
+        output = rs.processimage(file.filename)
+
+        # allow user to download after process it
+
+    # forward to static stream page
+    return render_template("imageProcess.html")
+
+@app.route("/folderscan/")
+def folderscan():
+    # forward to static stream page
+    return render_template("folderscan.html")
 
 @app.route("/about/")
 def about():

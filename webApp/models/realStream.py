@@ -104,5 +104,24 @@ class RealStream:
             yield(b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' +
                 bytearray(encodedImage) + b'\r\n')
 
+    def processimage(filename):
+        md = FaceNet()
+        (W, H) = (None, None)
+
+        # read image
+        image = cv2.imread(os.path.join(["uploads", filename]))
+
+        # detect image
+        md.detect(image, net, ln, LABELS, COLORS, W, H)
+
+        # get encoded image
+        (flag, encodedImage) = cv2.imencode(".jpg", image)
+
+        # generate processed image
+        outputfile = filename+"_processed.png"
+        cv2.imwrite(outputfile, image)
+
+        return outputfile
+
 # release the video stream pointer
 #vs.stop()
