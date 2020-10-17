@@ -10,7 +10,7 @@ from werkzeug.utils import secure_filename
 
 from models.realStream import RealStream
 from models.facenet import FaceNet
-import util
+import util.utils as utils
 
 UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
@@ -46,7 +46,7 @@ def imageprocess():
     if request.method == 'POST':
         # save file
         file = request.files['uploadFile']
-        util.save_file(file)
+        utils.save_file(file)
 
         # call function to process it
         rs = realStream()
