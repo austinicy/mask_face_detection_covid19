@@ -6,9 +6,11 @@
         ready: function () {
 
             var formdata = {};
+            $("#processresultdiv").hide();
 
-            $('#uploadFile').fileinput({
-                uploadUrl: '/upload',
+            // base upload function
+            $('#uploadImage').fileinput({
+                uploadUrl: '/uploadImage',
                 theme : 'explorer-fas',
                 uploadAsync: false,
                 showUpload: false,
@@ -17,7 +19,6 @@
                 showCancel:true,
                 showCaption: true,
                 maxFileCount: 1,
-                uploadUrl: '/upload',
                 allowedFileExtensions: ['jpg', 'png'],
                 uploadExtraData: function(previewId, index) {
                     return formdata
@@ -27,6 +28,7 @@
                 dropZoneTitle: 'Drag file here！',
             });
 
+            // image encoding upload button
             $(".btn-upload-3").on("click", function() {
                 var username = $("#username").val();
                 if(!username) {
@@ -38,16 +40,51 @@
                   "username": $("#username").val()
                 }
 
+                $("#uploadImage").fileinput('upload');
+            });
+
+            // image encoding clear button
+            $(".btn-reset-3").on("click", function() {
+                $("#username").val('');
+                $("#uploadImage").fileinput('clear');
+            });
+
+            // call back function for upload Image file
+            $('#uploadImage').on('fileuploaded', function(event, data, previewId, index) {
+                $("#username").val('');
+            });
+
+            $('#uploadFile').fileinput({
+                uploadUrl: '/uploadfile',
+                theme : 'explorer-fas',
+                uploadAsync: false,
+                showUpload: false,
+                showRemove :true,
+                showPreview: true,
+                showCancel:true,
+                showCaption: true,
+                maxFileCount: 1,
+                allowedFileExtensions: ['jpg', 'png'],
+                browseClass: "btn btn-primary ",
+                dropZoneEnabled: true,
+                dropZoneTitle: 'Drag file here！',
+            });
+
+            // image process upload button
+            $(".btn-uploadfile-3").on("click", function() {
                 $("#uploadFile").fileinput('upload');
             });
 
-            $(".btn-reset-3").on("click", function() {
-                $("#username").val('');
+            // image process clear button
+            $(".btn-resetfile-3").on("click", function() {
                 $("#uploadFile").fileinput('clear');
             });
 
-            $('#uploadFile').on('fileuploaded', function(event, data, previewId, index) {
-                $("#username").val('');
+            // call back function for upload file
+            $('#uploadFile').on('filebatchuploadsuccess', function(event, data, previewId, index) {
+                var url = "/download/"+data.response.filename;
+                $("#downloadbtn").attr("href", url);
+                $("#processresultdiv").show();
             });
 
             //pending
@@ -58,5 +95,3 @@
     $(document).ready(page.ready);
 
 })();
-
-}

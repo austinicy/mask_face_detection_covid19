@@ -8,6 +8,7 @@ import numpy as np
 
 from imutils.video import VideoStream
 from models.facenet import FaceNet
+from models.util import utils
 
 # setup the path for YOLOv4
 
@@ -38,12 +39,12 @@ lock = threading.Lock()
 
 class RealStream:
     def __init__(self):
-        None
+        self.facenet = FaceNet()
 
     def init_config(self):
         None
 
-    def mask_detection():
+    def mask_detection(self):
         # global references to the video stream, output frame, and lock variables
         global vs, outputFrame, lock
 
@@ -54,27 +55,14 @@ class RealStream:
 
         # initialize the detection and the total number of frames read thus far
         (W, H) = (None, None)
-        md = FaceNet()
 
         # loop over frames from the video stream
         while True:
             # read the next frame from the video stream
             frame = vs.read()
 
-            if W is None or H is None:
-                (H, W) = frame.shape[:2]
-
-            # grab the current timestamp and draw it on the frame
-            timestamp = datetime.datetime.now()
-            cv2.putText(frame, timestamp.strftime(
-                "%A %d %B %Y %I:%M:%S%p"), (10, frame.shape[0] - 10),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 255), 1)
-
-            # call function to detect the mask of frames read thus far
-            md.detect(frame, net, ln, LABELS, COLORS, W, H)
-
-            # resize the frame
-            frame = imutils.resize(frame, width=400)
+            # process frame
+            frame = self.processFrame(frame, W, H)
 
             # acquire the lock, set the output frame, and release the lock
             with lock:
@@ -104,22 +92,43 @@ class RealStream:
             yield(b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' +
                 bytearray(encodedImage) + b'\r\n')
 
-    def processimage(filename):
-        md = FaceNet()
-        (W, H) = (None, None)
+
+    # process frame
+    def processFrame(self, frame, W, H):
+            if W is None or H is None:
+                (H, W) = frame.shape[:2]
+
+            # grab the current timestamp and draw it on the frame
+            timestamp = datetime.datetime.now()
+            cv2.putText(frame, timestamp.strftime(
+                "%A %d %B %Y %I:%M:%S%p"), (10, frame.shape[0] - 10),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 255), 1)
+
+            # call function to detect the mask of frames read thus far
+            self.facenet.detect(frame, net, ln, LABELS, COLORS, W, H)
+
+            # resize the frame
+            frame = imutils.resize(frame, width=400)
+
+            return frame
+
+    # process uploaded image / video
+    def processimage(self, filename):
+        print("process image for -> " + filename)
 
         # read image
-        image = cv2.imread(os.path.join(["uploads", filename]))
+        filepath = utils.get_file_path('uploads', filename)
+        image = cv2.imread(filepath)
 
-        # detect image
-        md.detect(image, net, ln, LABELS, COLORS, W, H)
-
-        # get encoded image
-        (flag, encodedImage) = cv2.imencode(".jpg", image)
+        # process frame
+        frame = self.processFrame(image, None, None)
 
         # generate processed image
-        outputfile = filename+"_processed.png"
-        cv2.imwrite(outputfile, image)
+        basename = os.path.splitext(filename)[0]
+        outputfile = basename+"_processed.jpg"
+
+        cv2.imwrite(utils.get_file_path('uploads', outputfile), frame)
+        print("processed image was successfully saved")
 
         return outputfile
 

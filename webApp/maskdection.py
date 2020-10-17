@@ -2,15 +2,13 @@ import os
 import threading
 import argparse
 
-from flask import Flask, Response
+from flask import Flask, Response, make_response, send_file
 from flask import flash, request, redirect, jsonify
 from flask import render_template
 
-from werkzeug.utils import secure_filename
-
 from models.realStream import RealStream
 from models.facenet import FaceNet
-import util.utils as utils
+from models.util import utils
 
 UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
@@ -29,7 +27,8 @@ def index():
 @app.route("/realstream/")
 def realStream():
     # start a thread that will perform mask detection
-    t = threading.Thread(target=RealStream.mask_detection)
+    rs = RealStream()
+    t = threading.Thread(target=rs.mask_detection())
     t.daemon = True
     t.start()
     # forward to real stream page
@@ -43,19 +42,22 @@ def staticstream():
 
 @app.route("/imageprocess/")
 def imageprocess():
+    return render_template("imageprocess.html")
+
+@app.route("/uploadfile", methods=['GET', 'POST'])
+def uploadfile():
     if request.method == 'POST':
         # save file
+
         file = request.files['uploadFile']
         utils.save_file(file)
 
         # call function to process it
-        rs = realStream()
+        rs = RealStream()
         output = rs.processimage(file.filename)
 
         # allow user to download after process it
-
-    # forward to static stream page
-    return render_template("imageProcess.html")
+        return jsonify({'filename': output})
 
 @app.route("/folderscan/")
 def folderscan():
@@ -76,8 +78,17 @@ def contact():
 def video_feed():
     # return the response generated along with the specific media
     # type (mime type)
-    return Response(RealStream.generate(),
+    rs = RealStream()
+    return Response(rs.generate(),
         mimetype = "multipart/x-mixed-replace; boundary=frame")
+
+@app.route("/download/<fileName>", methods=['GET'])
+def download(fileName):
+    file = os.path.join(UPLOAD_FOLDER, fileName)
+
+    response = make_response(send_file(file))
+    response.headers["Content-Disposition"] = "attachment; filename={};".format(file)
+    return response
 
 @app.route("/content_dash", methods=['GET'])
 def content_dash():
@@ -89,33 +100,24 @@ def content_dash():
     if data['type'] == 'folderscan':
         return render_template('folderscan.html')
 
-@app.route('/upload', methods=['GET', 'POST'])
+@app.route('/uploadimage', methods=['GET', 'POST'])
 def upload_file():
     if request.method == 'POST':
         # check if the post request has the file part
-        if 'uploadFile' not in request.files:
+        if 'uploadImage' not in request.files:
             flash('No file part')
             return redirect(request.url)
-        file = request.files['uploadFile']
-        # if user does not select file, browser also
-        # submit an empty part without filename
-        if file.filename == '':
-            flash('No selected file')
-            return redirect(request.url)
-        if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        file = request.files['uploadImage']
 
-            # encoding
-            md = FaceNet()
-            username = request.form['username']
-            md.save_encode_db(username, filename)
+        # save file first
+        utils.save_file(file)
+
+        # encoding and save into db
+        md = FaceNet()
+        username = request.form['username']
+        md.save_encode_db(username, file.filename)
+
         return jsonify('success')
-
-
-def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # execute function
 if __name__ == '__main__':
