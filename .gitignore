@@ -1,5 +1,5 @@
 .DS_Store
-webApp/mask_detection/__pycache__/*
 yolov4/data/.DS_Store
+webApp/models/__pycache__/*
 .weights
 .137
