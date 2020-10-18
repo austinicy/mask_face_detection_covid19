@@ -1,25 +1,26 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="jumbotron" style="background-image:url({{ url_for('static', filename='img/main.png')}})" >
+<!--<div class="jumbotron" style="background-image:url({{ url_for('static', filename='img/main.png')}})" >-->
+<div class="jumbotron" style="background-color: coral" >
     <div class="jumbotron-content container text-center">
         <h1>Mask Dection And Face Recognition</h1>
         <p>Explore new technology when touching "Me"...</p>
     </div>
 </div>
 
-<div class="container-fluid bg-3 text-center">
+<div class="container-fluid text-center">
     <h3>Options To Choose</h3><br>
     <div class="row">
-        <div class="col-sm-3 col-sm-offset-2">
+        <div class="col-md-3 offset-md-2">
             <h3>Realtime Stream</h3>
-            <a href="/realStream">
+            <a href="/realstream">
                 <img src="{{ url_for('static', filename='img/video.png')}}" class="img-responsive" style="width:100%" alt="Image">
             </a>
         </div>
-        <div class="col-sm-3 col-sm-offset-2">
+        <div class="col-md-3 offset-md-2">
             <h3>Static Image/Video</h3>
-            <a href="/staticStream">
+            <a href="/staticstream">
                 <img src="{{ url_for('static', filename='img/image.png')}}" class="img-responsive" style="width:100%" alt="Image">
             </a>
         </div>
