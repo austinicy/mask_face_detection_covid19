@@ -14,6 +14,9 @@ from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.image import img_to_array
 
 in_encoder = Normalizer('l2')
+print("Using gpu: {0}".format(tf.test.is_gpu_available(
+                            cuda_only=False,
+                            min_cuda_compute_capability=None)))
 
 class FaceNet:
     def __init__(self):

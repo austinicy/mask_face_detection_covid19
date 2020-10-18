@@ -63,11 +63,12 @@
                 showPreview: true,
                 showCancel:true,
                 showCaption: true,
-                maxFileCount: 1,
-                allowedFileExtensions: ['jpg', 'png'],
+                allowedFileExtensions: ['jpg', 'png', 'mp4', 'avi', 'dat', '3gp', 'mov', 'rmvb'],
+                maxFileSize : 153600,
+                maxFileCount : 1,
                 browseClass: "btn btn-primary ",
                 dropZoneEnabled: true,
-                dropZoneTitle: 'Drag file here！',
+                dropZoneTitle: 'Drag file here！'
             });
 
             // image process upload button

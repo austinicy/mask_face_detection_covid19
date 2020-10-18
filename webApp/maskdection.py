@@ -1,6 +1,7 @@
 import os
 import threading
 import argparse
+import filetype
 
 from flask import Flask, Response, make_response, send_file
 from flask import flash, request, redirect, jsonify
@@ -26,6 +27,9 @@ def index():
 
 @app.route("/realstream/")
 def realStream():
+    # start a thread that will start a video stream
+    global t
+
     # start a thread that will perform mask detection
     rs = RealStream()
     t = threading.Thread(target=rs.mask_detection())
@@ -37,42 +41,96 @@ def realStream():
 
 @app.route("/staticstream/")
 def staticstream():
+    # stop the detection thread
+    global t
+    try:
+        t.running = False
+        t.join()
+    except Exception:
+        print("realtime thread is not running")
+
     # forward to static stream page
     return render_template("staticStream.html")
 
 @app.route("/imageprocess/")
 def imageprocess():
+    # stop the detection thread
+    global t
+    try:
+        t.running = False
+        t.join()
+    except Exception:
+        print("realtime thread is not running")
+
     return render_template("imageprocess.html")
-
-@app.route("/uploadfile", methods=['GET', 'POST'])
-def uploadfile():
-    if request.method == 'POST':
-        # save file
-
-        file = request.files['uploadFile']
-        utils.save_file(file)
-
-        # call function to process it
-        rs = RealStream()
-        output = rs.processimage(file.filename)
-
-        # allow user to download after process it
-        return jsonify({'filename': output})
 
 @app.route("/folderscan/")
 def folderscan():
+    # stop the detection thread
+    global t
+    try:
+        t.running = False
+        t.join()
+    except Exception:
+        print("realtime thread is not running")
+
     # forward to static stream page
     return render_template("folderscan.html")
 
 @app.route("/about/")
 def about():
+    # stop the detection thread
+    global t
+    try:
+        t.running = False
+        t.join()
+    except Exception:
+        print("realtime thread is not running")
+
     # forward to about page
     return render_template("about.html")
 
 @app.route("/contact/")
 def contact():
+    # stop the detection thread
+    global t
+    try:
+        t.running = False
+        t.join()
+    except Exception:
+        print("realtime thread is not running")
+
     # forward to contact page
     return render_template("contact.html")
+
+
+#---------------------------------------------------------------------
+#----------------------------Functions--------------------------------
+#---------------------------------------------------------------------
+@app.route("/uploadfile", methods=['GET', 'POST'])
+def uploadfile():
+    if request.method == 'POST':
+
+        # save file
+        file = request.files['uploadFile']
+        result = utils.save_file(file)
+        if result == 0:
+            print("file saved failed.")
+        else:
+            print("file saved successful.")
+        # call function to process it
+        rs = RealStream()
+
+        # check file type
+        filepath = utils.get_file_path('uploads', file.filename)
+        if filetype.is_image(filepath):
+            output = rs.processimage(file.filename)
+        elif filetype.is_video(filepath):
+            output = rs.processvideo(file.filename)
+        else:
+            print("delete it.")
+        # allow user to download after process it
+        return jsonify({'filename': output})
 
 @app.route("/video_feed")
 def video_feed():

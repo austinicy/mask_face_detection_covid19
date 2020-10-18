@@ -6,7 +6,7 @@ import datetime
 import imutils
 import numpy as np
 
-from imutils.video import VideoStream
+from imutils.video import VideoStream, FPS
 from models.facenet import FaceNet
 from models.util import utils
 
@@ -57,7 +57,8 @@ class RealStream:
         (W, H) = (None, None)
 
         # loop over frames from the video stream
-        while True:
+        th = threading.currentThread()
+        while getattr(th, "running", True):
             # read the next frame from the video stream
             frame = vs.read()
 
@@ -107,9 +108,6 @@ class RealStream:
             # call function to detect the mask of frames read thus far
             self.facenet.detect(frame, net, ln, LABELS, COLORS, W, H)
 
-            # resize the frame
-            frame = imutils.resize(frame, width=400)
-
             return frame
 
     # process uploaded image / video
@@ -131,6 +129,64 @@ class RealStream:
         print("processed image was successfully saved")
 
         return outputfile
+
+    # process uploaded image / video
+    def processvideo(self, filename):
+        print("process video for -> " + filename)
+
+        # read video file
+        filepath = utils.get_file_path('uploads', filename)
+
+        # generate processed file name
+        outputfilename = os.path.splitext(filename)[0] + "_processed.mp4"
+        outputfilepath = utils.get_file_path('uploads', outputfilename)
+
+        # read from video file
+        video = cv2.VideoCapture(filepath)
+        fps = FPS().start()
+
+        # initial parameters
+        writer = None
+        (H, W) = (None, None)
+
+        while True:
+            (grabbed, frame) = video.read()
+
+            if not grabbed:
+                break
+
+            # resize frame to width=300
+            frame = imutils.resize(frame, width=300)
+
+            if W is None or H is None:
+                (H, W) = frame.shape[:2]
+
+            # check whether writer is None
+            if writer is None:
+                writer = cv2.VideoWriter(
+                                    filename=outputfilepath,
+                                    fourcc=cv2.VideoWriter_fourcc(*'mp4v'),
+                                    fps=video.get(cv2.CAP_PROP_FPS),
+                                    frameSize=(W, H))
+
+            # process the frame and update the FPS counter
+            frame = self.processFrame(frame, W, H)
+
+            cv2.imshow("frame", frame)
+
+            writer.write(frame)
+
+            cv2.waitKey(1)
+            fps.update()
+
+        # do a bit of cleanup
+        fps.stop()
+        cv2.destroyAllWindows()
+        writer.release()
+
+        print("processed video was successfully saved")
+
+        return outputfilename
 
 # release the video stream pointer
 #vs.stop()
