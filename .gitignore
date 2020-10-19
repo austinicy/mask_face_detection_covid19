@@ -1,5 +1,6 @@
 .DS_Store
 yolov4/data/.DS_Store
-webApp/models/__pycache__/*
+webApp/models/__pycache__
 .weights
 .137
+webApp/uploads

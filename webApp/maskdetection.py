@@ -159,8 +159,8 @@ def content_dash():
     if data['type'] == 'folderscan':
         return render_template('folderscan.html')
 
-@app.route('/uploadimage', methods=['GET', 'POST'])
-def upload_file():
+@app.route('/uploadImage', methods=['GET', 'POST'])
+def uploadImage():
     if request.method == 'POST':
         # check if the post request has the file part
         if 'uploadImage' not in request.files:
@@ -172,11 +172,14 @@ def upload_file():
         utils.save_file(file)
 
         # encoding and save into db
-        md = FaceNet()
+        fn = FaceNet()
         username = request.form['username']
-        md.save_encode_db(username, file.filename)
-
-        return jsonify('success')
+        (status, message) = fn.save_encode_db(username, file.filename)
+        response = make_response({"message":message})
+        response.status_code = status
+        # response.mimetype = 'text/plain'
+        # response.headers['x-tag'] = 'sth.magic'
+        return response                      
 
 # execute function
 if __name__ == '__main__':

@@ -4,7 +4,6 @@
     var page = {
 
         ready: function () {
-
             var formdata = {};
             $("#processresultdiv").hide();
 
@@ -89,6 +88,18 @@
             });
 
             //pending
+
+            $('body').on('DOMSubtreeModified', '.progress-bar-success', function(data){
+                if ($('.progress-bar-success').length>0 && $('.progress-bar-success')[0].outerText =="Done") {
+                    var fileName = $('.file-footer-caption')[0].title
+                    var arr = fileName.split('.')
+                    arr[0]=arr[0]+"_face"
+                    var processedFileName = arr.join('.')
+                    $("#uploadFile_processed").attr("src","/static/processed/"+processedFileName)
+                    $("#processresultdiv").show();
+                }
+
+              });
 
         }
     }
