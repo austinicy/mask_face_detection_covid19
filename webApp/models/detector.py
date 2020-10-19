@@ -5,8 +5,10 @@ from sklearn.preprocessing import Normalizer
 from scipy.spatial.distance import cosine
 from models.facenet import FaceNet
 from threading import Timer
-in_encoder = Normalizer('l2')
+import os
+from models.util import utils
 import tensorflow as tf
+
 print("Using gpu: {0}".format(tf.test.is_gpu_available(cuda_only=False,min_cuda_compute_capability=None)))
 # initial values
 CONFIDENCE=0.5
@@ -141,3 +143,4 @@ class MaskDetector:
                 cv2.rectangle(frame, (x, y), (x + w, y + h), color, 2)
                 text = "{}: {:.4f}".format(LABELS[classIDs[i]]+":"+names[i], confidences[i])
                 cv2.putText(frame, text, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, 10)
+                

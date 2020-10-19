@@ -12,6 +12,7 @@ from scipy.spatial.distance import cosine
 import tensorflow as tf
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.image import img_to_array
+from models.util import utils
 
 in_encoder = Normalizer('l2')
 print("Using gpu: {0}".format(tf.test.is_gpu_available(
@@ -226,27 +227,70 @@ class FaceNet:
         # resize pixels to the model size
         image = Image.fromarray(face)
         image = image.resize(required_size)
+        basename = os.path.splitext(filename)[0]
+        outputfile = basename+"_face.jpg"
+        cv2.imwrite(utils.get_file_path('webApp/uploads', outputfile), image)
+
         face_array = np.asarray(image)
 
         return face_array
+    def extract_face(self, filename):
+        filepath = utils.get_file_path('webApp/uploads', filename)
+        image = cv2.imread(filepath)
+        frame = image
+        # first detect face
+        xmlname = 'haarcascade_frontalface_alt2.xml'
+        xmlpath = utils.get_file_path('webApp/data', xmlname)
+        face_detector = cv2.CascadeClassifier(xmlpath)
+        faces = face_detector.detectMultiScale(frame, 1.3, 5)
+
+
+        if len(faces) == 0:
+            raise Exception("No face detected, please upload an image with your front face")
+        elif faces.shape[0] > 1:
+            print("face detected: {0}".format(faces.shape[0]))
+            raise Exception ("Too many faces deteted, please upload an image with only your face")
+        (x,y,w,h) = faces[0]
+
+        # cv2.rectangle(frame, (x,y), (x+w,y+h), (255,0,0), 2)     
+
+        # generate processed image
+        basename = os.path.splitext(filename)[0]
+        extention = os.path.splitext(filename)[1]
+        outputfile = basename+"_face"+extention
+        croppedFrame = frame[y:y+h,x:x+w]
+        cv2.imwrite(utils.get_file_path('webApp/static/processed', outputfile), croppedFrame)
+
+        face_array = np.asarray(image)
+        return face_array
+
 
     # encode person and save into db
     def save_encode_db(self, label, filename):
         print("encoding was begining for: " + label)
 
         # extract face
-        imagePath = os.path.sep.join(["uploads", filename])
-        face_frame = self.extract_mtcnn_face(imagePath)
+        # imagePath = os.path.sep.join(["webApp/uploads", filename])
+        # face_frame = self.extract_mtcnn_face(imagePath)
 
-        # get enbedding code
-        self.database[label] = self.get_embedding(face_frame)
+        try:
+            face_frame = self.extract_face(filename)
 
-        # write into db
-        dbPath = os.path.sep.join(["data", "dict.csv"])
-        with open(dbPath, 'w', newline='') as csv_file:
-            writer = csv.writer(csv_file)
-            for key, value in self.database.items():
-               value = list(value)
-               writer.writerow([key, value])
+            # get enbedding code
+            self.database[label] = self.get_embedding(face_frame)
+
+            # write into db
+            dbPath = os.path.sep.join(["webApp/data", "dict.csv"])
+            with open(dbPath, 'w', newline='') as csv_file:
+                writer = csv.writer(csv_file)
+                for key, value in self.database.items():
+                   value = list(value)
+                   writer.writerow([key, value])
+        except Exception as ex:
+            return (400, ex.args[0])
+        return (200, "face detected and encoded successfully")
+             
+        
+
 
 
