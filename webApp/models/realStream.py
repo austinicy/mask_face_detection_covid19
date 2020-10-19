@@ -6,11 +6,13 @@ import datetime
 import imutils
 import numpy as np
 
-from imutils.video import VideoStream, WebcamVideoStream,FPS
+from imutils.video import VideoStream,FPS
+from models.webcamVideoStream import WebcamVideoStream
 from models.facenet import FaceNet
 from models.detector import MaskDetector
 from models.util import utils
 
+from flask import Response
 # setup the path for YOLOv4
 
 # load the class labels our YOLO model was trained
@@ -105,6 +107,7 @@ class RealStream:
             # yield the output frame in the byte format
             yield(b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' +
                 bytearray(encodedImage) + b'\r\n')
+        
 
 
     # process frame
@@ -140,7 +143,8 @@ class RealStream:
         print("process image for -> " + filename)
 
         # read image
-        filepath = utils.get_file_path('uploads', filename)
+        filepath = utils.get_file_path('webApp/uploads', filename)
+        print(filepath)
         image = cv2.imread(filepath)
 
         # process frame
@@ -150,7 +154,7 @@ class RealStream:
         basename = os.path.splitext(filename)[0]
         outputfile = basename+"_processed.jpg"
 
-        cv2.imwrite(utils.get_file_path('uploads', outputfile), frame)
+        cv2.imwrite(utils.get_file_path('webApp/uploads', outputfile), frame)
         print("processed image was successfully saved")
 
         return outputfile

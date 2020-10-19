@@ -20,7 +20,7 @@ def allowed_file(filename):
 def save_file(file):
     if allowed_file(file.filename):
         filename = secure_filename(file.filename)
-        file.save(os.path.join('uploads', filename))
+        file.save(os.path.join('webApp/uploads', filename))
         return 1
     return 0
 

@@ -122,7 +122,8 @@ def uploadfile():
         rs = RealStream()
 
         # check file type
-        filepath = utils.get_file_path('uploads', file.filename)
+        filepath = utils.get_file_path('webApp/uploads', file.filename)
+        print(filepath)
         if filetype.is_image(filepath):
             output = rs.processimage(file.filename)
         elif filetype.is_video(filepath):
@@ -137,8 +138,8 @@ def video_feed():
     # return the response generated along with the specific media
     # type (mime type)
     rs = RealStream()
-    return Response(rs.generate(),
-        mimetype = "multipart/x-mixed-replace; boundary=frame")
+    return Response(rs.generate(), mimetype = "multipart/x-mixed-replace; boundary=frame")
+
 
 @app.route("/download/<fileName>", methods=['GET'])
 def download(fileName):
